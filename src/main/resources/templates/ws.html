@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot STOMP Broadcast</title>
+    <script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+    <script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.js"></script>
+
+</head>
+<body>
+    <div>
+        <button id="connect">建立连接</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect()">断开连接</button>
+    </div>
+    <div id="conversation">
+        <label>请输入你的姓名</label>
+        <input type="text" id="name">
+        <button id="send">发送消息给服务器端</button>
+        <p id="response"></p>
+    </div>
+</body>
+<script type="text/javascript">
+    var stompClient = null;
+    $('#connect').click(function () {
+        var socket = new SockJS('/endpointWisely');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({},function (frame) {
+            setConnectStatus(true);
+            console.log('connected ' + frame);
+            stompClient.subscribe('/topic/getResponse', function (response) {
+                showResponse(JSON.parse(response.body).responseMessage);
+            });
+        });
+    });
+    function disconnect() {
+        if(stompClient != null){
+            stompClient.disconnect();
+        }
+        setConnectStatus(false);
+        console.log("disconnected")
+
+    }
+    function setConnectStatus(status) {
+        document.getElementById('connect').disabled=status;
+        document.getElementById('disconnect').disabled=!status;
+        document.getElementById('conversation').style.visibility=status?'visible':'hidden';
+        $('#response').html();
+    }
+    function showResponse(message) {
+        var response=$('#response');
+        response.html(message);
+    }
+    $('#send').click(function () {
+        var name=$('#name').val();
+        console.log(name);
+        stompClient.send("/welcome",{},JSON.stringify({'name':name}))
+    });
+
+</script>
+</html>
