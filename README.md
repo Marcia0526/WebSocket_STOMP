@@ -1,3 +1,3 @@
 # WebSocket_STOMP
-- 启动后：
+- trigger:
 > http://localhost:8080/ws
